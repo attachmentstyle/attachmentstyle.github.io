@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тип привязанности</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #EDEAE3;
+    --cream-dark: #E2DDD4;
+    --ink: #1A1916;
+    --ink-soft: #5A5751;
+    --ink-muted: #9A958E;
+    --accent: #C8A882;
+    --accent-dark: #A88860;
+    --white: #F7F4EF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 60%, rgba(200,168,130,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3.5rem, 10vw, 8rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.4s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent-dark);
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    color: var(--ink-soft);
+    max-width: 420px;
+    line-height: 1.75;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.6s forwards;
+  }
+
+  .hero-btn {
+    display: inline-block;
+    padding: 1rem 3rem;
+    background: var(--ink);
+    color: var(--white);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: background 0.3s, transform 0.2s;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.8s forwards;
+  }
+
+  .hero-btn:hover { background: var(--ink-soft); transform: translateY(-1px); }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+
+  .hero-scroll span {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: var(--accent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+
+  /* ─── QUIZ SECTION ─── */
+  #quiz-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 2rem;
+    background: var(--white);
+  }
+
+  .quiz-container {
+    width: 100%;
+    max-width: 720px;
+  }
+
+  /* progress */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 3.5rem;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 1px;
+    background: var(--cream-dark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    position: absolute;
+    left: 0; top: 0; height: 100%;
+    background: var(--accent-dark);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .progress-num {
+    font-size: 12px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  /* question */
+  .q-wrap {
+    min-height: 200px;
+  }
+
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.4rem, 3.5vw, 2.1rem);
+    line-height: 1.35;
+    color: var(--ink);
+    margin-bottom: 3rem;
+    opacity: 1;
+    transition: opacity 0.3s;
+  }
+
+  .q-text.fading { opacity: 0; }
+
+  /* options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--cream-dark);
+    background: var(--cream);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    position: relative;
+  }
+
+  .opt:hover {
+    border-color: var(--accent);
+    background: var(--white);
+    transform: translateX(4px);
+  }
+
+  .opt.selected {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--white);
+    transform: translateX(4px);
+  }
+
+  .opt-badge {
+    width: 32px;
+    height: 32px;
+    border: 1px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .opt-label {
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  /* nav */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--cream-dark);
+  }
+
+  .btn-back {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    transition: color 0.2s;
+  }
+
+  .btn-back:hover { color: var(--ink); }
+  .btn-back:disabled { opacity: 0; pointer-events: none; }
+
+  .btn-next {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--ink);
+    border: none;
+    padding: 0.9rem 2.5rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-next:hover { background: var(--ink-soft); transform: translateY(-1px); }
+  .btn-next:disabled { background: var(--cream-dark); color: var(--ink-muted); cursor: not-allowed; transform: none; }
+
+  /* ─── RESULT ─── */
+  #result-section {
+    display: none;
+    min-height: 100vh;
+    padding: 5rem 2rem;
+    background: var(--cream);
+  }
+
+  .result-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .result-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .result-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .result-headline em {
+    font-style: italic;
+    color: var(--accent-dark);
+  }
+
+  .result-type-label {
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 3rem;
+  }
+
+  .result-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--accent);
+    margin-bottom: 2rem;
+  }
+
+  .result-desc {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    line-height: 1.85;
+    max-width: 580px;
+    margin-bottom: 4rem;
+  }
+
+  /* score bars */
+  .scores {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 4rem;
+  }
+
+  .score-item {
+    padding: 1.5rem 1.25rem;
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-item.winner {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--white);
+  }
+
+  .score-item.winner .score-name,
+  .score-item.winner .score-count { color: var(--white); }
+  .score-item.winner .score-sublabel { color: rgba(255,255,255,0.5); }
+
+  .score-count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3.5rem;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .score-name {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+
+  .score-sublabel {
+    font-size: 11px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* decorative large letter */
+  .deco-letter {
+    position: fixed;
+    right: -0.05em;
+    bottom: -0.1em;
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(12rem, 25vw, 22rem);
+    color: rgba(0,0,0,0.03);
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+    z-index: 0;
+  }
+
+  /* extra childhood block */
+  .result-extra-wrap {
+    background: var(--cream);
+    border-left: 2px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .result-extra-label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    margin-bottom: 0.5rem;
+  }
+  .result-extra {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.75;
+    font-style: italic;
+  }
+
+  /* btn-restart */
+  .btn-restart {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: none;
+    border: 1px solid var(--ink);
+    padding: 0.9rem 2.5rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+  }
+  .btn-restart:hover { background: var(--ink); color: var(--white); transform: translateY(-1px); }
+
+  /* ─── INFO SECTION ─── */
+  #info-section {
+    padding: 6rem 2rem;
+    background: var(--cream);
+  }
+  .info-inner { max-width: 760px; margin: 0 auto; }
+  .info-eyebrow {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-muted); margin-bottom: 1rem;
+  }
+  .info-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    line-height: 1.05; letter-spacing: -0.02em;
+    color: var(--ink); margin-bottom: 1rem;
+  }
+  .info-title em { font-style: italic; color: var(--accent-dark); }
+  .info-subtitle {
+    font-size: 1rem; color: var(--ink-soft); line-height: 1.7;
+    max-width: 500px; margin-bottom: 4rem;
+  }
+
+  /* diagram */
+  .diagram-wrap {
+    position: relative;
+    width: 100%; max-width: 480px;
+    aspect-ratio: 1;
+    margin: 0 auto 1rem;
+  }
+  .axis-label {
+    position: absolute;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-muted); text-align: center;
+  }
+  .axis-label.top { top: 0; left: 50%; transform: translateX(-50%); }
+  .axis-label.bottom { bottom: 0; left: 50%; transform: translateX(-50%); }
+  .axis-label.left { left: 0; top: 50%; transform: translateY(-50%); text-align: left; font-size: 10px; }
+  .axis-label.right { right: 0; top: 50%; transform: translateY(-50%); text-align: right; font-size: 10px; }
+  .diagram-cross {
+    position: absolute;
+    inset: 28px 52px 28px 52px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    border: 1px solid var(--ink);
+  }
+  .diagram-cross::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: 0; bottom: 0;
+    width: 1px; background: var(--ink);
+  }
+  .diagram-cross::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px; background: var(--ink);
+  }
+  .quadrant {
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px; text-align: center;
+  }
+  .quadrant span {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-weight: 500; color: var(--ink-soft);
+  }
+  .q-tl, .q-bl { border-right: none; }
+  .q-tl span, .q-tr span { font-weight: 500; }
+  .diagram-caption {
+    font-size: 12px; color: var(--ink-muted); text-align: center;
+    margin-bottom: 4rem; line-height: 1.6;
+  }
+
+  /* type cards */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 2.5rem;
+  }
+  .type-card {
+    padding: 1.75rem 1.5rem;
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+  }
+  .type-card-featured {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--white);
+  }
+  .type-card-letter {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.5rem; line-height: 1;
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+  }
+  .type-card-featured .type-card-letter { color: var(--accent); }
+  .type-card-title {
+    font-size: 14px; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+  }
+  .type-card-featured .type-card-title { color: var(--white); }
+  .type-card-text { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+  .type-card-featured .type-card-text { color: rgba(255,255,255,0.7); }
+
+  .info-note {
+    padding: 1.5rem;
+    border: 1px solid var(--cream-dark);
+    background: var(--white);
+    margin-bottom: 3rem;
+  }
+  .info-note p { font-size: 14px; color: var(--ink-soft); line-height: 1.75; }
+  .info-note strong { font-weight: 500; color: var(--ink); }
+  .info-note-special { border-left: 2px solid var(--accent-dark); }
+  .info-note-title {
+    font-size: 13px; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink); margin-bottom: 0.75rem;
+  }
+
+  /* criteria list */
+  .criteria-list { margin-bottom: 3rem; }
+  .criteria-item {
+    display: flex; gap: 16px; padding: 1rem 0;
+    border-bottom: 1px solid var(--cream-dark);
+  }
+  .criteria-item:first-child { border-top: 1px solid var(--cream-dark); }
+  .criteria-dash { font-size: 16px; color: var(--accent-dark); flex-shrink: 0; padding-top: 1px; }
+  .criteria-item p { font-size: 15px; color: var(--ink-soft); line-height: 1.7; }
+
+  /* faq block */
+  .info-faq {
+    padding: 2rem;
+    background: var(--white);
+    border: 1px solid var(--cream-dark);
+    margin-bottom: 4rem;
+  }
+  .info-faq-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem; color: var(--ink);
+    margin-bottom: 1rem; line-height: 1.3;
+  }
+  .info-faq-text { font-size: 15px; color: var(--ink-soft); line-height: 1.75; }
+
+  /* baby section */
+  .baby-section { margin-top: 1rem; }
+  .baby-header { margin-bottom: 3rem; }
+  .baby-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.1; letter-spacing: -0.02em;
+    color: var(--ink); margin-bottom: 1rem;
+  }
+  .baby-title em { font-style: italic; color: var(--accent-dark); }
+  .baby-intro { font-size: 15px; color: var(--ink-soft); line-height: 1.75; max-width: 580px; }
+  .baby-cards { display: flex; flex-direction: column; gap: 1px; background: var(--cream-dark); border: 1px solid var(--cream-dark); }
+  .baby-card { padding: 2rem; background: var(--white); }
+  .baby-card-a { border-left: 3px solid #D85A30; }
+  .baby-card-b { border-left: 3px solid #3B6D11; }
+  .baby-card-c { border-left: 3px solid #185FA5; }
+  .baby-card-type {
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    font-weight: 500; margin-bottom: 0.75rem;
+  }
+  .baby-card-a .baby-card-type { color: #993C1D; }
+  .baby-card-b .baby-card-type { color: #3B6D11; }
+  .baby-card-c .baby-card-type { color: #185FA5; }
+  .baby-card p { font-size: 15px; color: var(--ink-soft); line-height: 1.75; }
+
+  @media (max-width: 600px) {
+    .type-cards { grid-template-columns: 1fr; }
+    .diagram-wrap { max-width: 300px; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { transform: scaleY(1); opacity: 1; }
+    50% { transform: scaleY(0.6); opacity: 0.4; }
+  }
+
+  .fade-in {
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  @media (max-width: 600px) {
+    .scores { grid-template-columns: 1fr; }
+    .hero-title { font-size: 3.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <p class="hero-eyebrow">Психология отношений</p>
+  <h1 class="hero-title">Тип<br><em>привязанности</em></h1>
+  <p class="hero-subtitle">41 вопрос — и вы узнаете, как именно вы любите, чего боитесь и чего на самом деле ищете в отношениях.</p>
+  <button class="hero-btn" onclick="startQuiz()">Начать тест</button>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Прокрутить</span>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz-section">
+  <div class="quiz-container">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="pf"></div></div>
+      <span class="progress-num" id="qnum">1 / 41</span>
+    </div>
+    <div class="q-wrap">
+      <p class="q-text" id="qt"></p>
+      <div class="options" id="opts"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" id="backBtn" onclick="goBack()">← Назад</button>
+      <button class="btn-next" id="nextBtn" onclick="goNext()">Далее</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section id="result-section">
+  <div class="result-inner">
+    <p class="result-eyebrow">Ваш результат</p>
+    <h2 class="result-headline" id="r-title"></h2>
+    <p class="result-type-label" id="r-label"></p>
+    <div class="result-divider"></div>
+    <p class="result-desc" id="r-desc"></p>
+    <div class="result-extra-wrap">
+      <p class="result-extra-label">Устами младенца</p>
+      <p class="result-extra" id="r-extra"></p>
+    </div>
+    <div class="scores" id="r-scores"></div>
+    <button class="btn-restart" onclick="restart()">Пройти снова</button>
+  </div>
+  <div class="deco-letter" id="decoLetter"></div>
+</section>
+
+<!-- INFO SECTION -->
+<section id="info-section" style="display:none">
+  <div class="info-inner">
+
+    <div class="info-header">
+      <p class="info-eyebrow">Теория привязанности</p>
+      <h2 class="info-title">Два критерия<br><em>привязанности</em></h2>
+      <p class="info-subtitle">Нам кажется очень удобной схема Бреннан и её коллег, поскольку она даёт широкое представление о взаимосвязи типов привязанности. Тип определяется вашим положением на графике.</p>
+    </div>
+
+    <!-- Diagram -->
+    <div class="diagram-wrap">
+      <div class="axis-label top">Низкое избегание</div>
+      <div class="axis-label bottom">Высокое избегание</div>
+      <div class="axis-label left">Низкая<br>тревожность</div>
+      <div class="axis-label right">Высокая<br>тревожность</div>
+      <div class="diagram-cross">
+        <div class="quadrant q-tl"><span>Надёжный</span></div>
+        <div class="quadrant q-tr"><span>Тревожный</span></div>
+        <div class="quadrant q-bl"><span>Избегающий</span></div>
+        <div class="quadrant q-br"><span>Тревожно-<br>избегающий</span></div>
+      </div>
+    </div>
+    <p class="diagram-caption">По образцу шкалы двух критериев привязанности (Two Attachment Dimensions Scale) Бреннан, Кларка и Шейвера</p>
+
+    <!-- Criteria list -->
+    <div class="criteria-list">
+      <div class="criteria-item">
+        <div class="criteria-dash">—</div>
+        <p>насколько комфортна для вас близость (или до какой степени вы стараетесь её избегать);</p>
+      </div>
+      <div class="criteria-item">
+        <div class="criteria-dash">—</div>
+        <p>тревога по поводу чувств спутника и внимательности с его стороны (и как часто вы думаете об отношениях).</p>
+      </div>
+    </div>
+
+    <!-- Three type cards -->
+    <div class="type-cards">
+      <div class="type-card">
+        <div class="type-card-letter">А</div>
+        <h3 class="type-card-title">Тревожный</h3>
+        <p class="type-card-text">Если вам не хватает близости (низкое избегание близости), но много сомнений в том, куда идут отношения, и поступки любимого человека часто вас расстраивают (высокая тревожность) — вы, скорее всего, относитесь к тревожному типу.</p>
+      </div>
+      <div class="type-card type-card-featured">
+        <div class="type-card-letter">B</div>
+        <h3 class="type-card-title">Надёжный</h3>
+        <p class="type-card-text">Если вам комфортно рядом с любимым человеком (низкое избегание близости) и вы нечасто беспокоитесь о взаимности и в целом об отношениях (низкая тревожность), принимая естественный ход вещей — скорее всего, вы относитесь к надёжному типу.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-card-letter">C</div>
+        <h3 class="type-card-title">Избегающий</h3>
+        <p class="type-card-text">Если сближение дискомфортно, независимость и свобода важнее отношений (высокое избегание) и вас не заботит, любимы ли вы и взаимны ли ваши чувства (низкая тревожность) — вы, скорее всего, относитесь к избегающему типу.</p>
+      </div>
+    </div>
+
+    <!-- Тревожно-избегающий -->
+    <div class="info-note info-note-special">
+      <p class="info-note-title">Тревожно-избегающий тип</p>
+      <p>Если вы одновременно боитесь близости и беспокоитесь о чувствах партнёра — вы принадлежите к редкому <strong>тревожно-избегающему типу</strong>. В эту категорию попадает совсем немного людей, и вам полезно будет узнать про оба типа.</p>
+    </div>
+
+    <!-- А если не могу определить -->
+    <div class="info-faq">
+      <h3 class="info-faq-title">А если я всё же не могу определить?</h3>
+      <p class="info-faq-text">Обычно люди с ходу определяют свой тип привязанности. И сразу заявляют: «Я тревожный», «Я точно избегающий» или «Думаю, я надёжный». Но не для всех это так просто. Если разница в баллах незначительная, напоминаем, что тип привязанности определяется двумя критериями:</p>
+      <div class="criteria-list" style="margin-top:1rem">
+        <div class="criteria-item">
+          <div class="criteria-dash">—</div>
+          <p>насколько комфортна для вас близость (или до какой степени вы стараетесь её избегать);</p>
+        </div>
+        <div class="criteria-item">
+          <div class="criteria-dash">—</div>
+          <p>тревога по поводу чувств спутника и внимательности с его стороны (и как часто вы думаете об отношениях).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Устами младенца — полный раздел -->
+    <div class="baby-section">
+      <div class="baby-header">
+        <p class="info-eyebrow" style="margin-bottom:0.75rem">Устами младенца</p>
+        <h3 class="baby-title">Откуда взялась<br><em>классификация?</em></h3>
+        <p class="baby-intro">Из наблюдений за детьми. Изначально исследователи разделили на типы малышей от 9 до 18 месяцев по итогам теста незнакомой ситуации. Приведём краткие определения типов привязанности у детей. Похожие реакции можно заметить у взрослых с аналогичным типом.</p>
+      </div>
+      <div class="baby-cards">
+        <div class="baby-card baby-card-a">
+          <div class="baby-card-type">А — Тревожный</div>
+          <p>После ухода матери ребёнок сильно переживает. Когда она возвращается, он реагирует двойственно: рад её видеть, но в то же время злится. Его труднее успокоить, и затихает он ненадолго. Уже через несколько секунд в гневе толкает мать, начинает извиняться и снова разражается слезами.</p>
+        </div>
+        <div class="baby-card baby-card-b">
+          <div class="baby-card-type">B — Надёжный</div>
+          <p>Такой ребёнок явно переживает в отсутствие матери, но счастлив снова её видеть и радостно приветствует. Чувствуя себя рядом с ней в безопасности, он быстро успокаивается и продолжает играть.</p>
+        </div>
+        <div class="baby-card baby-card-c">
+          <div class="baby-card-type">C — Избегающий</div>
+          <p>Когда мать покидает ребёнка, он ведёт себя так, как будто ничего не случилось. Её возвращения он не замечает и не отвлекается от игры для приветствия. Но всё это только внешне — внутри он вовсе не спокоен. Экспериментально установлено, что сердцебиение и уровень кортизола (гормона стресса) у таких детей повышаются так же, как у остальных.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+const questions = [
+  { text: "Я часто боюсь, что любимый человек меня разлюбит.", letter: "A" },
+  { text: "Мне легко проявлять нежность к любимому человеку.", letter: "B" },
+  { text: "Мне кажется, что если кто-нибудь увидит моё истинное лицо, то никогда меня не полюбит.", letter: "A" },
+  { text: "Я быстро отхожу после расставания. Мне удивительно легко выбросить человека из головы.", letter: "C" },
+  { text: "Когда у меня никого нет, я боюсь и чувствую свою неполноценность.", letter: "A" },
+  { text: "Мне трудно эмоционально поддержать любимого человека, когда у него плохое настроение.", letter: "C" },
+  { text: "Когда любимого человека нет рядом, я подозреваю, что он мне изменяет.", letter: "A" },
+  { text: "Меня не смущает зависимость от любимого человека.", letter: "B" },
+  { text: "Независимость для меня важнее отношений.", letter: "C" },
+  { text: "Я не люблю делиться сокровенными мыслями с любимым человеком.", letter: "C" },
+  { text: "Я боюсь, что любимый человек не ответит взаимностью на проявление чувств.", letter: "A" },
+  { text: "Меня всё устраивает в отношениях.", letter: "B" },
+  { text: "У меня нет необходимости притворяться кем-то другим в отношениях.", letter: "B" },
+  { text: "Я много думаю об отношениях.", letter: "A" },
+  { text: "Мне неприятно зависеть от любимого человека.", letter: "C" },
+  { text: "Я слишком быстро привязываюсь в отношениях.", letter: "A" },
+  { text: "Мне совсем не трудно рассказать любимому человеку о своих потребностях и желаниях.", letter: "B" },
+  { text: "Иногда любимый человек без явной причины меня раздражает.", letter: "C" },
+  { text: "Я чутко реагирую на настроение любимого человека.", letter: "B" },
+  { text: "Большинство людей честные и надёжные.", letter: "B" },
+  { text: "Мне больше нравятся случайные связи (не интим) с разными людьми, а не близкие отношения.", letter: "C" },
+  { text: "Мне приятно высказывать любимому человеку свои мысли и чувства.", letter: "B" },
+  { text: "Если мой спутник меня бросит, я больше никогда никого не встречу.", letter: "A" },
+  { text: "Меня нервирует излишнее сближение.", letter: "C" },
+  { text: "В споре, вместо того чтобы всё обсудить, я сгоряча говорю и делаю то, о чём впоследствии сожалею.", letter: "A" },
+  { text: "Ссоры — не причина сомневаться в отношениях.", letter: "B" },
+  { text: "Те, с кем я встречаюсь, стараются сократить дистанцию, и мне это неприятно.", letter: "C" },
+  { text: "Я боюсь, что никому не нравлюсь.", letter: "A" },
+  { text: "Некоторым со мной скучно, потому что я не люблю драматизировать.", letter: "C" },
+  { text: "Я скучаю в разлуке, но когда мы вместе, мне хочется сбежать.", letter: "C" },
+  { text: "Мне несложно выразить своё несогласие.", letter: "B" },
+  { text: "Терпеть не могу, когда кто-то от меня зависит.", letter: "C" },
+  { text: "Если интересный мне человек поглядывает на других, это быстро проходит — может, чуть-чуть ревную, но мне всё равно.", letter: "B" },
+  { text: "Если интересный мне человек поглядывает на других, я чувствую облегчение — значит, он не планирует сближаться.", letter: "C" },
+  { text: "Если интересный мне человек начал встречаться с другими, я впадаю в депрессию.", letter: "A" },
+  { text: "Если мы только начали встречаться, а любимый человек проявляет холодность, ни чего страшного — я даже обрадуюсь.", letter: "C" },
+  { text: "Если мы только начали встречаться, а любимый человек отдаляется, я спрошу, что случилось, но мне не придёт в голову, что дело во мне.", letter: "B" },
+  { text: "Если мы встречаемся несколько месяцев, а любимый человек объявляет, что всё кончено, я расстроюсь, но ненадолго.", letter: "C" },
+  { text: "Если любимый человек меня бросит (пусть поревную), я покажу, что он потерял.", letter: "B" },
+  { text: "Когда я наконец получаю в отношениях то, чего мне хотелось, интерес пропадает.", letter: "C" },
+  { text: "Я в хороших (чисто платонических) отношениях с бывшими.", letter: "B" },
+];
+
+const results = {
+  A: {
+    headline: "Тревожный",
+    label: "Тип А — тревожная привязанность",
+    desc: "Вам всегда надо быть рядом с любимым человеком, и вы способны на глубокую близость. Но вы боитесь, что вам это нужнее, чем ему. Отношения поглощают основную часть вашей эмоциональной энергии. Вы очень восприимчивы к переменам настроения и поступкам любимого человека и, хотя часто угадываете причину, принимаете их слишком близко к сердцу. В результате вы говорите и делаете то, о чём впоследствии сожалеете. Если вы говорите и делаете всё правильно — вы меньше волнуетесь и становитесь уравновешенным.",
+    deco: "А",
+    extra: "Тревожный ребёнок после ухода матери сильно переживает. Когда она возвращается, реагирует двойственно: рад её видеть, но в то же время злится. Его труднее успокоить, и затихает он ненадолго."
+  },
+  B: {
+    headline: "Надёжный",
+    label: "Тип B — надёжная привязанность",
+    desc: "Для вас естественно дарить нежность и любовь. Вы наслаждаетесь близостью и не боитесь потерять отношения. В делах любви вам свойственна невозмутимость, вас трудно выбить из колеи. Вы умеете донести до любимого человека свои потребности и желания, правильно интерпретируете его эмоции и адекватно реагируете. С любимыми вы готовы делить радости и горести, а в трудную минуту подставите плечо.",
+    deco: "B",
+    extra: "Надёжный ребёнок явно переживает в отсутствие матери, но счастлив снова её видеть и радостно приветствует. Чувствуя себя рядом с ней в безопасности, он быстро успокаивается и продолжает играть."
+  },
+  C: {
+    headline: "Избегающий",
+    label: "Тип C — избегающая привязанность",
+    desc: "Независимость и самодостаточность для вас важнее всего, вы не готовы променять их на близкие отношения. Хотя вас тянет к людям, вы держите комфортную для себя дистанцию. Вы не тратите много времени на размышления об отношениях и перспективе расставания. Любимые часто жалуются на вашу эмоциональную глухоту. Вы всегда начеку и не допускаете попыток контролировать вас или заходить на вашу территорию.",
+    deco: "C",
+    extra: "Избегающий ребёнок, когда мать покидает его, ведёт себя так, как будто ничего не случилось. Её возвращения он не замечает и не отвлекается от игры для приветствия. Но всё это только внешне — внутри он вовсе не спокоен."
+  }
+};
+
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+
+function startQuiz() {
+  document.getElementById('quiz-section').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(render, 400);
+}
+
+function render() {
+  const total = questions.length;
+  const q = questions[current];
+  document.getElementById('pf').style.width = ((current + 1) / total * 100) + '%';
+  document.getElementById('qnum').textContent = `${current + 1} / ${total}`;
+
+  const qtEl = document.getElementById('qt');
+  qtEl.textContent = q.text;
+
+  const opts = document.getElementById('opts');
+  opts.innerHTML = '';
+
+  const yesLabel = q.letter === 'A' ? 'А' : q.letter === 'B' ? 'B' : 'C';
+
+  [
+    { val: q.letter, badge: yesLabel, label: 'Да, это про меня' },
+    { val: '-', badge: '—', label: 'Нет, не согласен(на)' }
+  ].forEach(ch => {
+    const btn = document.createElement('button');
+    btn.className = 'opt' + (answers[current] === ch.val ? ' selected' : '');
+    btn.innerHTML = `<span class="opt-badge">${ch.badge}</span><span class="opt-label">${ch.label}</span>`;
+    btn.onclick = () => { answers[current] = ch.val; render(); };
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('backBtn').disabled = current === 0;
+  const nxt = document.getElementById('nextBtn');
+  nxt.disabled = answers[current] === null;
+  nxt.textContent = current === total - 1 ? 'Узнать результат' : 'Далее';
+}
+
+function goBack() {
+  if (current > 0) { current--; render(); }
+}
+
+function goNext() {
+  if (answers[current] === null) return;
+  if (current < questions.length - 1) { current++; render(); }
+  else showResult();
+}
+
+function showResult() {
+  let A = 0, B = 0, C = 0;
+  answers.forEach((a, i) => {
+    if (a === questions[i].letter) {
+      if (a === 'A') A++;
+      else if (a === 'B') B++;
+      else C++;
+    }
+  });
+
+  const type = (A >= B && A >= C) ? 'A' : (B >= A && B >= C) ? 'B' : 'C';
+  const r = results[type];
+
+  document.getElementById('r-title').innerHTML = r.headline.replace(/(\w+)$/, '<em>$1</em>');
+  document.getElementById('r-label').textContent = r.label;
+  document.getElementById('r-desc').textContent = r.desc;
+  document.getElementById('r-extra').textContent = r.extra;
+  document.getElementById('decoLetter').textContent = r.deco;
+
+  const scoreData = [
+    { key: 'A', count: A, name: 'Тревожный', sub: 'Тип А' },
+    { key: 'B', count: B, name: 'Надёжный', sub: 'Тип B' },
+    { key: 'C', count: C, name: 'Избегающий', sub: 'Тип C' }
+  ];
+
+  const sc = document.getElementById('r-scores');
+  sc.innerHTML = scoreData.map(s => `
+    <div class="score-item ${s.key === type ? 'winner' : ''}">
+      <div class="score-count">${s.count}</div>
+      <div class="score-name">${s.name}</div>
+      <div class="score-sublabel">${s.sub}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('quiz-section').style.display = 'none';
+  const rs = document.getElementById('result-section');
+  rs.style.display = 'block';
+  document.getElementById('home').style.display = 'none';
+  document.getElementById('info-section').style.display = 'block';
+  rs.scrollIntoView({ behavior: 'smooth' });
+}
+
+function restart() {
+  current = 0;
+  answers = new Array(questions.length).fill(null);
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('info-section').style.display = 'none';
+  document.getElementById('quiz-section').style.display = 'flex';
+  document.getElementById('home').style.display = 'flex';
+  document.getElementById('home').scrollIntoView({ behavior: 'smooth' });
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
